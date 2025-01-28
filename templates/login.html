@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2E2E2E; /* Dark Grey */
+            font-family: 'Chakra Petch', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            background-color: #3C3C3C;
+            padding: 20px;
+            align-items: center; /* Center align the form elements */
+        }
+        label, input, button {
+            margin-bottom: 10px;
+            color: white;
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        .branding-img {
+            width: 250px; /* Make image take full width of the form */
+            margin-bottom: 20px; /* Space between image and form fields */
+        }
+    </style>
+</head>
+<body>
+    <form method="POST">
+        <img src="branding.png" alt="Branding Image" class="branding-img"> <!-- Branding Image -->
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <div class="remember-me">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember" style="margin: 0 5px;">Remember me</label>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>

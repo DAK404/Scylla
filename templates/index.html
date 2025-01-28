@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #2E2E2E; /* Dark Grey */
+            font-family: 'Chakra Petch', sans-serif;
+            color: white; /* Make text color white for better contrast */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #1C1C1C;
+            border-bottom: 1px solid #ccc;
+        }
+        .header .branding-img {
+            height: 40px; /* Adjust the height as needed */
+            margin-right: 10px;
+        }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .header .username {
+            margin-right: 10px;
+        }
+        .header a {
+            color: #4CAF50; /* Green */
+            text-decoration: none;
+        }
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #3C3C3C; /* Slightly lighter grey for chat area */
+        }
+        .input-container {
+            display: flex;
+            flex-shrink: 0;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #3C3C3C; /* Match the background of chat area */
+        }
+        textarea {
+            width: 100%;
+            height: 20px;
+            resize: none;
+            background-color: #2E2E2E; /* Dark Grey */
+            color: white;
+            border: 1px solid #4CAF50; /* Green */
+            border-radius: 4px;
+            padding: 10px;
+        }
+        button {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="branding.png" alt="Branding Image" class="branding-img">
+        <div class="user-info">
+            <span class="username">{{ username }}</span> |&nbsp;&nbsp;&nbsp; <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+    <div class="chat-container" id="chat-container">
+        <!-- AI Responses will be appended here -->
+    </div>
+    <div class="input-container">
+        <textarea id="user-input"></textarea>
+        <button onclick="sendMessage()">Send</button>
+        <button onclick="resetChat()">Reset</button>
+    </div>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            document.getElementById('user-input').value = '';
+            const chatContainer = document.getElementById('chat-container');
+            const username = document.querySelector('.username').textContent.trim();
+            if (userInput.trim()) {
+                const userMessage = document.createElement('div');
+                userMessage.textContent = `${username} > ${userInput}`;
+                userMessage.classList.add('user-message');
+                chatContainer.appendChild(userMessage);
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: userInput })
+                }).then(res => res.json());
+
+                const aiResponse = document.createElement('div');
+                aiResponse.textContent = response.response;
+                aiResponse.classList.add('ai-response');
+                chatContainer.appendChild(aiResponse);
+
+                document.getElementById('user-input').value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function resetChat() {
+            document.getElementById('user-input').value = '';
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
