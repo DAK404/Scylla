@@ -13,6 +13,15 @@ if not secret_key:
     print("Error: SECRET_KEY environment variable not found. Exiting.")
     sys.exit(1)
 
+#####################################
+# ONLY GGUF MODELS CAN BE USED HERE #
+#####################################
+#
+# Using the following model:
+# bartowski/Mistral-Small-Instruct-2409-GGUF
+# bartowski/uncensoredai_UncensoredLM-DeepSeek-R1-Distill-Qwen-14B-GGUF
+# TheBloke/Llama-2-7B-Chat-GGUF
+
 # Load the model using llama_cpp
 llm = Llama.from_pretrained(
     repo_id="bartowski/Mistral-Small-Instruct-2409-GGUF",
@@ -63,7 +72,7 @@ def chat():
                 }
             ]
         )
-        response_text = response["choices"][0]["message"]["content"]
+        response_text =f"Scylla> {response["choices"][0]["message"]["content"]}"
         print("Response:", response_text)  # Debug print statement
     except Exception as e:
         print(f"Error during model inference: {e}")  # Print any errors during inference

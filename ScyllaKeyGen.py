@@ -33,7 +33,4 @@ for entry in env_var_entries:
 with open(env_file_path, 'w') as env_file:
     env_file.writelines(lines)
 
-print("Environment variables set in /etc/environment")
-
-# Apply the changes (Note: This won't persist in the current shell)
-os.system('sudo source /etc/environment')
+print("Environment variables set in /etc/environment\nRun the following command to apply the changes:\n\nsource /etc/environment\n")

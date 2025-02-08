@@ -6,5 +6,7 @@
 6. Run Scylla.py
 7. profit
 
-NOTE: tested only on Debian 12. May work on Ubuntu
-No idea about other linux distros or OSes
+NOTE:
+
+Program tested and works well on Ubuntu and Debian.
+For new users, Ubuntu is recommended.

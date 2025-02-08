@@ -71,6 +71,7 @@
             cursor: pointer;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -88,44 +89,53 @@
         <button onclick="resetChat()">Reset</button>
     </div>
     <script>
-        async function sendMessage() {
-            const userInput = document.getElementById('user-input').value;
-            document.getElementById('user-input').value = '';
-            const chatContainer = document.getElementById('chat-container');
-            const username = document.querySelector('.username').textContent.trim();
-            if (userInput.trim()) {
-                const userMessage = document.createElement('div');
-                userMessage.textContent = `${username} > ${userInput}`;
-                userMessage.classList.add('user-message');
-                chatContainer.appendChild(userMessage);
-
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message: userInput })
-                }).then(res => res.json());
-
-                const aiResponse = document.createElement('div');
-                aiResponse.textContent = response.response;
-                aiResponse.classList.add('ai-response');
-                chatContainer.appendChild(aiResponse);
-
+        document.addEventListener("DOMContentLoaded", function() {
+            const converter = new showdown.Converter();
+            
+            async function sendMessage() {
+                const userInput = document.getElementById('user-input').value;
                 document.getElementById('user-input').value = '';
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-        }
+                const chatContainer = document.getElementById('chat-container');
+                const username = document.querySelector('.username').textContent.trim();
+                if (userInput.trim()) {
+                    const userMessage = document.createElement('div');
+                    userMessage.textContent = `${username}> ${userInput}`;
+                    userMessage.classList.add('user-message');
+                    chatContainer.appendChild(userMessage);
 
-        function resetChat() {
-            document.getElementById('user-input').value = '';
-        }
+                    try {
+                        const response = await fetch('/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: userInput })
+                        });
+                        const data = await response.json();
+                        console.log(data); // Log the response to the console
 
-        document.getElementById('user-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
+                        const aiResponse = document.createElement('div');
+                        aiResponse.innerHTML = converter.makeHtml(data.response); // Convert Markdown to HTML
+                        aiResponse.classList.add('ai-response');
+                        chatContainer.appendChild(aiResponse);
+
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                }
             }
+
+            function resetChat() {
+                document.getElementById('user-input').value = '';
+            }
+
+            document.getElementById('user-input').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
         });
     </script>
 </body>
