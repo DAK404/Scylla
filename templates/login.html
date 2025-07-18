@@ -47,7 +47,7 @@
 </head>
 <body>
     <form method="POST">
-        <img src="branding.png" alt="Branding Image" class="branding-img"> <!-- Branding Image -->
+        <img src="{{ url_for('static', filename='branding.png') }}" alt="Branding Image" class="branding-img">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <label for="password">Password:</label>
