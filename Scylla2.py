@@ -4,7 +4,7 @@ import requests
 import pam
 import os
 import sys
-import re
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,23 +12,25 @@ load_dotenv()
 # -------------------------
 # Config
 # -------------------------
-secret_key = os.getenv('SECRET_KEY')
-if not secret_key:
-    print("Error: SECRET_KEY not found")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    print("Error: SECRET_KEY not set")
     sys.exit(1)
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "llama3"
+
+# ⚠️ CHANGE THIS AFTER CHECKING `ollama list`
+MODEL_NAME = "llama3:8b"   # <-- update if needed
+
 
 # -------------------------
 # Flask setup
 # -------------------------
 app = Flask(__name__)
-app.secret_key = secret_key
+app.secret_key = SECRET_KEY
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.session_protection = "strong"
 
 
 # -------------------------
@@ -47,20 +49,20 @@ def load_user(user_id):
 # -------------------------
 # Login (PAM)
 # -------------------------
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        remember = 'remember' in request.form
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
         p = pam.pam()
         if p.authenticate(username, password):
-            user = User(username)
-            login_user(user, remember=remember)
-            return redirect(url_for('index'))
+            login_user(User(username))
+            return redirect(url_for("index"))
 
-    return render_template('login.html')
+        return "Login failed", 401
+
+    return render_template("login.html")
 
 
 # -------------------------
@@ -83,50 +85,61 @@ def chat():
                     "prompt": user_input,
                     "stream": True
                 },
+                headers={  # ✅ IMPORTANT FIX
+                    "Content-Type": "application/json"
+                },
                 stream=True
             ) as r:
 
+                # ❗ DEBUG: print status
+                print("Ollama status:", r.status_code)
+
+                if r.status_code != 200:
+                    yield f"[ERROR] Ollama returned {r.status_code}\n"
+                    return
+
                 for line in r.iter_lines():
                     if line:
-                        chunk = line.decode("utf-8")
+                        decoded = line.decode("utf-8")
+
+                        # ❗ DEBUG RAW STREAM
+                        print("RAW:", decoded)
 
                         try:
-                            data = eval(chunk) if chunk.startswith("{") else None
-                            token = data.get("response", "") if data else ""
+                            data = json.loads(decoded)   # ✅ FIXED
+                            token = data.get("response", "")
 
-                            token = re.sub(r"<think>.*?</think>", "", token, flags=re.DOTALL)
-
-                            if token.strip():
+                            if token:
                                 yield token
 
-                        except:
-                            continue
+                        except Exception as e:
+                            print("PARSE ERROR:", e)
 
         except Exception as e:
-            print(f"Error: {e}")
-            yield "\n[Error during inference]"
+            print("REQUEST ERROR:", e)
+            yield "\n[Error contacting Ollama]"
 
-    return Response(stream_with_context(generate()), mimetype='text/plain')
+    return Response(stream_with_context(generate()), mimetype="text/plain")
 
 
 # -------------------------
 # Protected routes
 # -------------------------
-@app.route('/')
+@app.route("/")
 @login_required
 def index():
-    return render_template('index.html', username=current_user.id)
+    return render_template("index.html", username=current_user.id)
 
 
-@app.route('/logout')
+@app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 
 
 # -------------------------
 # Run
 # -------------------------
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
